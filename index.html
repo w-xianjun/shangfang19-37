@@ -2207,55 +2207,71 @@
             `;
         }
 
-        // 初始化祭祀区域
-        function initMemorialSection() {
-            const memorialSection = document.getElementById('memorialSection');
-            const mainTributeTarget = document.getElementById('mainTributeTarget');
-            const personMemorialTitle = document.getElementById('personMemorialTitle');
-            const personMemorialContent = document.getElementById('personMemorialContent');
-            const spouseMemorialArea = document.getElementById('spouseMemorialArea');
-            const spouseMemorialTitle = document.getElementById('spouseMemorialTitle');
-            const spouseMemorialContent = document.getElementById('spouseMemorialContent');
-            
-            // 1. 去掉"当前祭祀"后的冒号，只保留文字
-            mainTributeTarget.textContent = '当前祭祀';
-            
-            // 2. 将祭祀对象信息放到第一个卡片的标题位置，格式和配偶卡片保持一致
-            personMemorialTitle.textContent = `${currentPerson.name} (${currentPerson.code})`;
-            personMemorialContent.textContent = ''; // 清空内容区域
-            
-            // 激活本人普通香按钮
-            const personHasDeathInfo = hasDeathBurialInfo(currentPerson.details);
-            document.getElementById('personIncenseBtn').disabled = !personHasDeathInfo;
-            document.getElementById('personLargeIncenseBtn').disabled = !personHasDeathInfo;
-            loadIncenseCount('person', currentPerson.code);
-            
-            // 处理配偶祭祀区域：用配偶姓氏代替"配"字
-            if (currentSpouse) {
-                spouseMemorialArea.style.display = 'block';
-                const spouseSurname = extractSpouseSurname(currentPerson.details);
-                spouseMemorialTitle.textContent = `${spouseSurname}氏`; // 配偶卡片标题保持原有格式
-                spouseMemorialContent.textContent = ''; // 清空内容区域
-                
-                const spouseHasDeathInfo = hasDeathBurialInfo(currentPerson.details);
-                document.getElementById('spouseIncenseBtn').disabled = !spouseHasDeathInfo;
-                document.getElementById('spouseLargeIncenseBtn').disabled = !spouseHasDeathInfo;
-                loadIncenseCount('spouse', `${currentPerson.code}_spouse`);
-            } else {
-                spouseMemorialArea.style.display = 'none';
-            }
-            
-            // 显示祭祀区域
-            if (personHasDeathInfo || (currentSpouse && hasDeathBurialInfo(currentPerson.details))) {
-                memorialSection.classList.add('show');
-            } else {
-                memorialSection.classList.remove('show');
-            }
-            
-            loadIncenseHistory();
-        }
+// 初始化祭祀区域 - 修复版本
+function initMemorialSection() {
+    const memorialSection = document.getElementById('memorialSection');
+    const mainTributeTarget = document.getElementById('mainTributeTarget');
+    const personMemorialTitle = document.getElementById('personMemorialTitle');
+    const personMemorialContent = document.getElementById('personMemorialContent');
+    const spouseMemorialArea = document.getElementById('spouseMemorialArea');
+    const spouseMemorialTitle = document.getElementById('spouseMemorialTitle');
+    const spouseMemorialContent = document.getElementById('spouseMemorialContent');
+    
+    // 1. 去掉"当前祭祀"后的冒号，只保留文字
+    mainTributeTarget.textContent = '当前祭祀';
+    
+    // 2. 将祭祀对象信息放到第一个卡片的标题位置，格式和配偶卡片保持一致
+    personMemorialTitle.textContent = `${currentPerson.name} (${currentPerson.code})`;
+    personMemorialContent.textContent = ''; // 清空内容区域
+    
+    // 检查是否有殁殁葬信息
+    const personHasDeathInfo = hasDeathBurialInfo(currentPerson.details);
+    
+    // 激活本人普通香按钮（只有有殁殁葬信息时才启用）
+    document.getElementById('personIncenseBtn').disabled = !personHasDeathInfo;
+    document.getElementById('personLargeIncenseBtn').disabled = !personHasDeathInfo;
+    loadIncenseCount('person', currentPerson.code);
+    
+    // 修复：只有当确实有配偶信息时才显示配偶祭祀区域
+    const spouseInfo = extractSpouseInfo(currentPerson.details);
+    if (spouseInfo) {
+        spouseMemorialArea.style.display = 'block';
+        const spouseSurname = extractSpouseSurname(currentPerson.details);
+        spouseMemorialTitle.textContent = `${spouseSurname}氏`;
+        spouseMemorialContent.textContent = '';
+        
+        // 配偶按钮也根据殁殁葬信息启用/禁用
+        document.getElementById('spouseIncenseBtn').disabled = !personHasDeathInfo;
+        document.getElementById('spouseLargeIncenseBtn').disabled = !personHasDeathInfo;
+        loadIncenseCount('spouse', `${currentPerson.code}_spouse`);
+    } else {
+        // 修复：如果没有配偶信息，彻底隐藏配偶区域
+        spouseMemorialArea.style.display = 'none';
+    }
+    
+    // 关键修改：只有有殁殁葬信息时才显示祭祀区域
+    if (personHasDeathInfo) {
+        memorialSection.classList.add('show');
+    } else {
+        memorialSection.classList.remove('show');
+    }
+    
+    loadIncenseHistory();
+}
 
-        // 绑定普通香按钮事件
+// 提取配偶信息 - 更精确的检测
+function extractSpouseInfo(details) {
+    // 更精确的配偶信息检测
+    return details && details.includes('配') && details.match(/配(.+?)氏/) ? '配' : null;
+}
+
+// 提取配偶姓氏 - 更安全的提取
+function extractSpouseSurname(details) {
+    if (!details) return '未知';
+    
+    const surnameMatch = details.match(/配([^生]+?)氏/);
+    return surnameMatch ? surnameMatch[1].trim() : '未知';
+}        // 绑定普通香按钮事件
         function bindIncenseEvents() {
             // 本人普通香
             document.getElementById('personIncenseBtn').addEventListener('click', () => {
