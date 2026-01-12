@@ -3,8 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>受保护的家谱页面</title>
+    <style>
+        .access-denied {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f8f4e9;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        .denied-content {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            max-width: 500px;
+            border: 1px solid #9B2226;
+        }
+        h1 {
+            color: #9B2226;
+            margin-bottom: 20px;
+        }
+        p {
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        a {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #9B2226;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        a:hover {
+            background: #7a1a1f;
+        }
+    </style>
+    <script>
+        // 页面加载时验证访问权限
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            const branch = urlParams.get('branch');
+            
+            // 检查URL参数是否存在
+            if (!token || !branch) {
+                showAccessDenied();
+                return;
+            }
+            
+            try {
+                // 解码令牌
+                const decoded = atob(token);
+                const [expectedBranch, timestamp, random] = decoded.split('|');
+                
+                // 验证分支匹配且令牌在有效期内（10分钟）
+                if (expectedBranch !== branch || 
+                    Date.now() - parseInt(timestamp) > 10 * 60 * 1000) {
+                    showAccessDenied();
+                    return;
+                }
+                
+                // 验证通过，显示内容
+                document.body.style.display = 'block';
+            } catch (e) {
+                showAccessDenied();
+            }
+        });
+        
+        function showAccessDenied() {
+            document.body.innerHTML = `
+                <div class="access-denied">
+                    <div class="denied-content">
+                        <h1>访问受限</h1>
+                        <p>此页面只能通过家谱导航页访问。请返回导航页后点击相应房支链接进入。</p>
+                        <a href="https://w-xianjun.github.io/daohang.html">前往导航页</a>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</head>
+<body style="display: none;">
+    <!-- 这里是您的家谱页面实际内容 -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>新安琅琊王氏道桥恒公支<br>谱载查询暨先世祭祀平台</title>
     <style>
+        .access-denied {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f8f4e9;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        .denied-content {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            max-width: 500px;
+            border: 1px solid #9B2226;
+        }
+        h1 {
+            color: #9B2226;
+            margin-bottom: 20px;
+        }
+        p {
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        a {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #9B2226;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        a:hover {
+            background: #7a1a1f;
+        }
+
         :root {
             --base-font-size: 16px;
             --primary-color: #9B2226;
@@ -510,7 +640,7 @@
         </div>
 
         <div id="incenseAnimation">
-            🔥🔥🔥🎋 祭祀中... 🎋🔥🔥🔥
+            🔥🔥🔥🎋 祭祀中... 🎋🔥🔥
             <div id="tributeMessage"></div>
         </div>
     </div>
@@ -2352,4 +2482,3 @@
     </script>
 </body>
 </html>
-
